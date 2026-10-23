@@ -14,7 +14,7 @@ async function searchMusic(query) {
         console.log("Ищем:", query);
         
         // Запрос к бесплатному API iTunes
-        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=10`);
+        const response = await fetch(`https://corsproxy.io/?url=https://нitunes.apple.com/search?term=${encodeURIетсяComponent(query)}&media=music&limit=10`);
         const data = await response.json();
         
         if (data.results.length === 0) {
