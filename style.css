@@ -1,0 +1,59 @@
+body {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.player-container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 30px 20px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    text-align: center;
+}
+
+.header h1 {
+    margin-top: 0;
+    font-size: 24px;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.current-track h2 {
+    font-size: 20px;
+    margin-bottom: 5px;
+    color: #00d2ff;
+}
+
+.current-track p {
+    color: #a0a0a0;
+    margin-top: 0;
+}
+
+button {
+    background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+    border: none;
+    border-radius: 50px;
+    color: white;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 15px;
+}
+
+button:active {
+    transform: scale(0.95);
+    box-shadow: 0 0 15px #00d2ff;
+}
