@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BeatGram Player</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="player-container">
+        <div class="header">
+            <h1>🎵 BeatGram</h1>
+        </div>
+
+        <div class="current-track">
+            <div class="track-info">
+                <h2 id="track-title">Выберите трек</h2>
+                <p id="track-artist">—</p>
+            </div>
+            <div class="album-art">
+                <div class="album-placeholder">🎵</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="progress-container">
+                <span id="current-time">0:00</span>
+                <input type="range" id="progress-bar" min="0" max="100" value="0">
+                <span id="duration">0:00</span>
+            </div>
+
+            <div class="buttons">
+                <button id="prev-btn">⏮️</button>
+                <button id="play-btn">▶️</button>
+                <button id="next-btn">⏭️</button>
+            </div>
+
+            <div class="volume-container">
+                <span>🔊</span>
+                <input type="range" id="volume-bar" min="0" max="100" value="70">
+            </div>
+        </div>
+
+        <div class="playlist">
+            <h3>Плейлист</h3>
+            <ul id="playlist-items"></ul>
+        </div>
+
+        <div class="add-track">
+            <input type="text" id="track-url" placeholder="URL трека (mp3)">
+            <input type="text" id="track-name" placeholder="Название">
+            <input type="text" id="track-artist-input" placeholder="Исполнитель">
+            <button id="add-btn">Добавить</button>
+        </div>
+    </div>
+
+    <audio id="audio-player"></audio>
+    <script src="app.js"></script>
+</body>
+</html>
