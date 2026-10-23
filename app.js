@@ -1,154 +1,105 @@
+// Инициализация Telegram WebApp
 const tg = window.Telegram.WebApp;
-tg.ready();
 tg.expand();
 
-const audio = document.getElementById('audio-player');
-const playBtn = document.getElementById('play-btn');
-const prevBtn = document.getElementById('prev-btn');
-const nextBtn = document.getElementById('next-btn');
-const progressBar = document.getElementById('progress-bar');
-const volumeBar = document.getElementById('volume-bar');
-const currentTimeEl = document.getElementById('current-time');
-const durationEl = document.getElementById('duration');
-const trackTitle = document.getElementById('track-title');
-const trackArtist = document.getElementById('track-artist');
-const playlistItems = document.getElementById('playlist-items');
-const addBtn = document.getElementById('add-btn');
-const trackUrlInput = document.getElementById('track-url');
-const trackNameInput = document.getElementById('track-name');
-const trackArtistInput = document.getElementById('track-artist-input');
-
-let playlist = [
-    {
-        title: 'Пример трека 1',
-        artist: 'Исполнитель 1',
-        url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
-    },
-    {
-        title: 'Пример трека 2',
-        artist: 'Исполнитель 2',
-        url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'
-    }
-];
-
+// Переменные плеера
+const audioPlayer = new Audio();
+let currentPlaylist = [];
 let currentTrackIndex = 0;
-let isPlaying = false;
 
-function loadTrack(index) {
-    if (index < 0 || index >= playlist.length) return;
-    
-    currentTrackIndex = index;
-    const track = playlist[index];
-    
-    audio.src = track.url;
-    trackTitle.textContent = track.title;
-    trackArtist.textContent = track.artist;
-    
-    updatePlaylistUI();
-}
+// Функция поиска музыки через iTunes API
+async function searchMusic(query) {
+    try {
+        // Показываем загрузку (опционально)
+        console.log("Ищем:", query);
+        
+        // Запрос к бесплатному API iTunes
+        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=10`);
+        const data = await response.json();
+        
+        if (data.results.length === 0) {
+            alert("Ничего не найдено :(");
+            return;
+        }
 
-function togglePlay() {
-    if (isPlaying) {
-        audio.pause();
-        playBtn.textContent = '▶️';
-    } else {
-        audio.play();
-        playBtn.textContent = '⏸️';
-    }
-    isPlaying = !isPlaying;
-}
+        // Очищаем старый список и формируем новый
+        currentPlaylist = data.results.map(track => ({
+            title: track.trackName,
+            artist: track.artistName,
+            url: track.previewUrl, // 30-секундный отрывок
+            cover: track.artworkUrl100
+        }));
 
-function playNext() {
-    currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-    loadTrack(currentTrackIndex);
-    audio.play();
-    playBtn.textContent = '⏸️';
-    isPlaying = true;
-}
-
-function playPrev() {
-    currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
-    loadTrack(currentTrackIndex);
-    audio.play();
-    playBtn.textContent = '⏸️';
-    isPlaying = true;
-}
-
-function updateProgress() {
-    if (audio.duration) {
-        const progress = (audio.currentTime / audio.duration) * 100;
-        progressBar.value = progress;
-        currentTimeEl.textContent = formatTime(audio.currentTime);
-        durationEl.textContent = formatTime(audio.duration);
+        renderPlaylist();
+    } catch (error) {
+        console.error("Ошибка поиска:", error);
+        alert("Ошибка при поиске музыки");
     }
 }
 
-function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-}
+// Функция отрисовки списка треков на экране
+function renderPlaylist() {
+    const container = document.getElementById('playlist-container');
+    if (!container) {
+        // Если контейнера нет, создаем его (на случай если в HTML его не было)
+        const newContainer = document.createElement('div');
+        newContainer.id = 'playlist-container';
+        newContainer.style.marginTop = '20px';
+        document.querySelector('.player-container').appendChild(newContainer);
+        return renderPlaylist();
+    }
 
-function seekTrack() {
-    const seekTime = (progressBar.value / 100) * audio.duration;
-    audio.currentTime = seekTime;
-}
-
-function setVolume() {
-    audio.volume = volumeBar.value / 100;
-}
-
-function updatePlaylistUI() {
-    playlistItems.innerHTML = '';
-    playlist.forEach((track, index) => {
-        const li = document.createElement('li');
-        li.className = index === currentTrackIndex ? 'active' : '';
-        li.innerHTML = `
-            <div class="track-title">${track.title}</div>
-            <div class="track-artist">${track.artist}</div>
+    container.innerHTML = ''; // Очищаем
+    currentPlaylist.forEach((track, index) => {
+        const trackDiv = document.createElement('div');
+        trackDiv.style.cssText = "display: flex; align-items: center; margin-bottom: 10px; cursor: pointer; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px;";
+        
+        trackDiv.innerHTML = `
+            <img src="${track.cover}" style="width: 50px; height: 50px; border-radius: 5px; margin-right: 15px;">
+            <div>
+                <div style="font-weight: bold; font-size: 14px;">${track.title}</div>
+                <div style="font-size: 12px; color: #ccc;">${track.artist}</div>
+            </div>
         `;
-        li.onclick = () => {
-            loadTrack(index);
-            togglePlay();
-        };
-        playlistItems.appendChild(li);
+        
+        trackDiv.onclick = () => playTrack(index);
+        container.appendChild(trackDiv);
     });
 }
 
-function addTrack() {
-    const url = trackUrlInput.value.trim();
-    const name = trackNameInput.value.trim();
-    const artist = trackArtistInput.value.trim();
+// Функция воспроизведения
+function playTrack(index) {
+    currentTrackIndex = index;
+    const track = currentPlaylist[index];
     
-    if (url && name) {
-        playlist.push({
-            title: name,
-            artist: artist || 'Неизвестный исполнитель',
-            url: url
-        });
-        
-        trackUrlInput.value = '';
-        trackNameInput.value = '';
-        trackArtistInput.value = '';
-        
-        updatePlaylistUI();
-        
-        tg.showAlert('Трек добавлен!');
-    } else {
-        tg.showAlert('Заполните URL и название трека');
-    }
+    audioPlayer.src = track.url;
+    audioPlayer.play();
+    
+    // Обновляем информацию на экране
+    document.getElementById('track-title').innerText = track.title;
+    document.getElementById('track-artist').innerText = track.artist;
+    
+    // Меняем обложку, если она есть в HTML
+    const coverImg = document.querySelector('.current-track img');
+    if (coverImg) coverImg.src = track.cover;
 }
 
-playBtn.addEventListener('click', togglePlay);
-prevBtn.addEventListener('click', playPrev);
-nextBtn.addEventListener('click', playNext);
-audio.addEventListener('timeupdate', updateProgress);
-progressBar.addEventListener('input', seekTrack);
-volumeBar.addEventListener('input', setVolume);
-addBtn.addEventListener('click', addTrack);
+// Обработчики кнопок
+audioPlayer.onended = () => {
+    // Переключение на следующий трек
+    if (currentTrackIndex < currentPlaylist.length - 1) {
+        playTrack(currentTrackIndex + 1);
+    }
+};
 
-audio.addEventListener('ended', playNext);
+// Ждем загрузки DOM
+document.addEventListener('DOMContentLoaded', () => {
+    // Ищем поле ввода и кнопку поиска в вашем HTML
+    // (Если в index.html они называются по-другому, поправьте селекторы)
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
 
-loadTrack(0);
-updatePlaylistUI();
-setVolume();
+    if (searchButton) {
+        searchButton.onclick = () => searchMusic(searchInput.value);
+    }
+});
